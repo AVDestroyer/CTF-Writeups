@@ -18,13 +18,13 @@ setInterval(() => {
   lastLotteryTime = Date.now()
 }, 60 * 1000)
 ```
-This tells us that a seed is passed into the seedToBalls method. Seeds are determined with the nextRandomNumber method()
+This tells us that a seed is passed into the seedToBalls method. Seeds are determined with the nextRandomNumber method():
 ```js
 function nextRandomNumber () {
   return (multiplier * seed) % modulus
 }
 ```
-Where
+where
 ```js
 const modulus = crypto.generatePrimeSync(128, { safe: true, bigint: true })
 const multiplier = (2n ** 127n) - 1n
