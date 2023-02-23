@@ -165,7 +165,7 @@ Now that we recovered the nonce, we need to determine the output of `service.gen
 ```py
 Class NonceGenerator:
 	...
-    def setState(self,state):
+	def setState(self,state):
 		self.state = state
 
 class MyECCService:
