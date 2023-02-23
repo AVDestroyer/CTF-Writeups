@@ -5,12 +5,12 @@ Just put more modulus to make ECC safe!
 ## Solution
 Let's connect to `nc my-ecc-service.chal.perfect.blue 1337`. Looks like its an oracle.
 
-First, let's quickly glance at the script. In the `main` method, we have 3 inputs we can send to the connection: G, V, and P. In the main method, we create a `MyECCService()` object, and call its gen method 100 times (this part looks to be irrelevant, just to introduce randomness). Then,
+First, let's quickly glance at the script. In the `main` method, we have 3 inputs we can send to the connection: G, V, and P. In the main method, we create a `MyECCService` object, and call its `gen` method 100 times (this part looks to be irrelevant, just to introduce randomness). Then,
 - If we send G, the service calls `gen` again, and prints the payload that it outputs
 - If we send V, we input a payload and the service calls `verify` on it
 - If we send P, we input a payload, the service calls `gen`, and it checks if the payload matches the payload output from `gen`
 
-Let's examine the MyECCService class:
+Let's examine the `MyECCService` class:
 - When an object is constructed, it contains a new `NonceGenerator` object called `nonce_gen`
 - This class also has a list of numbers called MODS. It also has a Base Point: (2,3)
 - The `get_x` method takes a nonce (int) input, and outputs a byte string.
@@ -19,7 +19,7 @@ Let's examine the MyECCService class:
 - The `gen` method outputs a byte string
   - It creates a nonce and key with `nonce_gen`, and it uses this nonce to create an x-value. Then, return the byte string "\x02\x03" + key + x
     - The first 2 bytes ("\x02\x03") is the base point
-    - If we take a look at the `gen` method of the NonceGenerator() class, we can see that the key is 8 bytes long (line 12). x should be 13*16 bytes long, so overall, the length is 218 bytes. This checks out if we create a payload with G
+    - If we take a look at the `gen` method of the `NonceGenerator` class, we can see that the key is 8 bytes long (line 12). x should be 13*16 bytes long, so overall, the length is 218 bytes. This checks out if we create a payload with G
 - The `verify` method outputs a boolean
   - We check if the length is 218 bytes. We then generate a nonce with the `get` method from the `NonceGenerator` class. We set the base point to the first 2 bytes in the payload, and generate a new x-value with our nonce and new base point. We then check if the input payload's x-value (`inp[10:]`) is equal to the x-value we generated.
 
@@ -105,7 +105,7 @@ Let's generate a payload and select the two outputs that correspond to these ind
 '015af2b4355ec5a862f667835a' (index -3)
 '05576ceaf69b38eab7298fa15c' (index -4)
 ```
-Now, just call Sage's built-in discrete log method (which essentially uses the Pohlig Hellman algorithm). Here's some Sage:
+Now, just call Sage's built-in `discrete_log` method (which essentially uses the Pohlig Hellman algorithm). Run `discrete_log` with the base point, P, and create a new point, Q, with our x-value. Here's some Sage:
 ```py
 MODS = [
         942340315817634793955564145941,
@@ -146,7 +146,7 @@ print(P.discrete_log(Q1))
 print("Q2:")
 print(P.discrete_log(Q2))
 ```
-We did this for one of the two values from the payload, but you can simply substitute the a variable for the other one. I needed to consider two values for y since we only know the x value of Q, and this x value could have two y-values (due to $y^2$). This is also why we needed to test two values from the payload, to see the nonce that is common to both of them. Later, I realized that I probably don't need to do this, since one of the nonces output is much larger than the other, and the smaller one is always correct.
+We did this for one of the two values from the payload, but you can simply substitute the a variable for the other one. I needed to consider two values for y since we only know the x value of Q, and this x value could have two y-values (due to $y^2$). This is also why we needed to test two values from the payload, to see the nonce that is common to both of them. Later, I realized that I probably don't need to do this, since one of the nonces output is much larger than the other, and the smaller one is always correct. The larger nonce is likely larger than 10 bytes (how large a nonce can be), but I didn't check this.
 Running this with both of the x-values from the payload (we will need to change `a` and `MODS[i]` each time we run the script), we get:
 ```
 Q1:
@@ -161,7 +161,7 @@ Q2:
 146985702648338962643309728158
 ```
 As we can see, the nonce is 593057655811568689710667, as this is common to both outputs. Also, the other nonce seems way too big, and probably isn't correct. I think I only needed to run this script once and only chose the smaller nonce. That's ok, we having a working proof of concept.
-Now that we recovered the nonce, we need to determine the output of `service.gen()` with this nonce. This means that we need to edit the state of `nonce_gen` object to correspond to the nonce. If we look at the `gen()` method of the `NonceGenerator` class, we can see that it returns its `state` variable and the key, and later in `MyECCService.gen()`, the output of this method is used as the nonce. So, now that we know the nonce, we directly know the state of the `nonce_gen` object. I added the following methods into `challenge.py` to let us use the `MyECCService` class with a nonce that we input.
+Now that we recovered the nonce, we need to determine the output of `service.gen()` with this nonce. This means that we need to edit the state of `nonce_gen` object to correspond to the nonce. If we look at the `gen` method of the `NonceGenerator` class, we can see that it returns its `state` variable and the key, and later in `MyECCService.gen()`, the output of this method is used as the nonce. So, now that we know the nonce, we directly know the state of the `nonce_gen` object. I added the following methods into `challenge.py` to let us use the `MyECCService` class with a nonce that we input.
 ```py
 Class NonceGenerator:
 	...
@@ -180,9 +180,9 @@ Now, we can create a solve script. I first tested locally, with `challenge.py`. 
 - Create a new `MyECCService` object and set its `nonce_gen`'s state to the nonce we just found. Use this new service to generate a new payload
 - Send P, and enter our new payload.
 
-(I had to change the Python script to Sage to make the math work). The local script, `challenge.sage` is here
+(I had to change the Python script to Sage to make the math work). The local script is [here](./local.sage)
 
-Works perfectly! Now, I had to interface it with the remote connection via pwntools. The final solve script is here.
+Works perfectly! Now, I had to interface it with the remote connection via pwntools. The final solve script is [here](./REMOTE.sage).
 
 ## Flag: pbctf{Which_method_did_you_use?_Maybe_it_also_works_on_the_second_challenge!}
 ## Note
