@@ -79,6 +79,7 @@ In order to perform  a hash length extension attack,  we must preserve this padd
 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383
 ```
 Note that 65 is `\x41` in hex, and 128 is `\x80` in hex. I subtract 1 for the same reason as before. Let's see if hash length extension works now:
+
 Inputs: 
 ```
 1, 3, 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383, 1
@@ -106,7 +107,7 @@ b'\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x
 >>> counter_final_hash
 '653f875bb4b5e868395f679c49adf65855cadf3ffc8dc493d6973fd333207405'
 ```
-Amazing, the hashes match up! Let's step back a second. What have we achieved? Using this script, we were able to predict the hash of counter after adding `num` to `counter`, without necessarily even knowing the value of `counter` (I used it here to check my work). That means that we have found a *case* where SHA-256 is **not a cryptographically secure source of randomness**! I was able to predict a future output based only on the current output of SHA-256 and no knowledge of its state. This will prove very helpful in the final solve. If we are able to predict the hash H at any time, then we can recover the original plaintext (such as the file) by computing ciphertext XOR H. Note that in *most* cases, SHA-256 is a good source of randomness and the reason it wasn't here was because it was used inappropriately, not because it is fundamentally flawed as a hashing algorithm. T
+Amazing, the hashes match up! Let's step back a second. What have we achieved? Using this script, we were able to predict the hash of counter after adding `num` to `counter`, without necessarily even knowing the value of `counter` (I used it here to check my work). That means that we have found a *case* where SHA-256 is **not a cryptographically secure source of randomness**! I was able to predict a future output based only on the current output of SHA-256 and no knowledge of its state. This will prove very helpful in the final solve. If we are able to predict the hash H at any time, then we can recover the original plaintext (such as the file) by computing ciphertext XOR H. Note that in *most* cases, SHA-256 is a good source of randomness and the reason it wasn't here was because it was used inappropriately, not because it is fundamentally flawed as a hashing algorithm.
 ## Putting it all together
 The strategy is to 
 1. Ask the program to encrypt our own message
