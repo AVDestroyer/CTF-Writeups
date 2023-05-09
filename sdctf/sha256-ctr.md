@@ -36,10 +36,7 @@ I found the following [Python code](https://github.com/stephenbradshaw/hlextend)
 >>> num
 115792089237316195423570985008687907853269984665640564039457584007913129639935
 ```
-This number is chosen to add. `counter` is chosen as a random 256-bit (or 32-byte) number, so I left-shift 1 by 256 bits/32 bytes. I subtract 1 from `num` because we want to compute `counter` || `0x01`, but after we encrypt the flag once, `counter` increases by 1, which we need to account for when calculating the concatenation. Now, I run the program:
-```bash
-python3 sha256ctr.py
-```
+This number is chosen to add. `counter` is chosen as a random 256-bit (or 32-byte) number, so I left-shift 1 by 256 bits/32 bytes. I subtract 1 from `num` because we want to compute `counter` || `0x01`, but after we encrypt the flag once, `counter` increases by 1, which we need to account for when calculating the concatenation. Now, I run the program: `python3 sha256ctr.py`
 Inputs:
 ```
 1, 3, 115792089237316195423570985008687907853269984665640564039457584007913129639935, 1
@@ -81,9 +78,6 @@ In order to perform  a hash length extension attack,  we must preserve this padd
 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383
 ```
 Note that 65 is `\x41` in decimal, and 128 is `\x80` in decimal. I subtract 1 for the same reason as before. Let's see if hash length extension works now:
-```bash
-python3 sha256ctr.py
-```
 Inputs: 
 ```
 1, 3, 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383, 1
