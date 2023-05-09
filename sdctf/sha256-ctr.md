@@ -78,7 +78,7 @@ In order to perform  a hash length extension attack,  we must preserve this padd
 >>> num
 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383
 ```
-Note that 65 is `\x41` in decimal, and 128 is `\x80` in decimal. I subtract 1 for the same reason as before. Let's see if hash length extension works now:
+Note that 65 is `\x41` in hex, and 128 is `\x80` in hex. I subtract 1 for the same reason as before. Let's see if hash length extension works now:
 Inputs: 
 ```
 1, 3, 871507720033181804981178500707736050011105791878633447243580836547625167963157650171703886058243710254943004764744569836035642451052111735108265899022352383, 1
