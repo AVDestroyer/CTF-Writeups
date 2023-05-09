@@ -37,6 +37,7 @@ I found the following [Python code](https://github.com/stephenbradshaw/hlextend)
 115792089237316195423570985008687907853269984665640564039457584007913129639935
 ```
 This number is chosen to add. `counter` is chosen as a random 256-bit (or 32-byte) number, so I left-shift 1 by 256 bits/32 bytes. I subtract 1 from `num` because we want to compute `counter` || `0x01`, but after we encrypt the flag once, `counter` increases by 1, which we need to account for when calculating the concatenation. Now, I run the program: `python3 sha256ctr.py`
+
 Inputs:
 ```
 1, 3, 115792089237316195423570985008687907853269984665640564039457584007913129639935, 1
