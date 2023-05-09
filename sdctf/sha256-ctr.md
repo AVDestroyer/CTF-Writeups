@@ -1,6 +1,8 @@
 # SHA256-CTR
 SHA-256 seems to be a nice construction for a stream cipher
+
 Attachments: [sha256ctr.py](sha256-ctr.py)
+
 Connect via `nc shactr.sdc.tf 1337`
 ## Initial steps
 The encryption scheme gives us 3 options: encrypting the flag, encrypt our own message, and simulate encrypting N blocks. Encrypting the flag, it looks like we have a bunch of hex as the output. If we encrypt our own message, we can quickly see that the length of the hex output corresponds with how many bytes we encrypt. This makes sense, since CTR mode turns a block cipher into a stream cipher (more on what that means soon!). Remember that every byte is 2 hex characters, so based on the length of the encrypted flag, I knew the flag was around 63 characters long. Now, we need to examine source code.
