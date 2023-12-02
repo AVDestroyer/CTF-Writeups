@@ -1,4 +1,10 @@
 # orakl password checker
+## SquareCTF 2023, kidz-corner
+## Description
+I was reading up on password hashes for my new startup, orakl. apparently they're supposed to take a really long time?
+
+# Solve
+
 We are given the following [program](./orakl-password-checker), which runs on remote, and we want to determine what the flag is. We can enter a flag, and the program will compare the flag to the true flag and tell us if we are right or not.
 
 To examine the program, we will load it into Ghidra and examine `main`. All the 3 functions which we eventually decompiled are listed [here](./decompilation.md). Main takes in one argument (`argc`), reads in the password from stdin into an input buffer, and calls `secret_proprietary_super_advanced_password_checker` with `argc` and the input buffer. This function reads in the flag from `flag.txt`, then loops through every character in the input buffer. This loop terminates once we have checked every character in the input or the output of the `super_proprietary_super_advanced_password_checker_hasher` method is not 0. During the loop, we call the previously mentioned function with parameters of the current character in our input, the current character in the flag, and `argc` (from main). 
