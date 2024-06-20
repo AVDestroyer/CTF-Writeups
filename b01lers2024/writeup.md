@@ -11,7 +11,7 @@ Next, we need to determine how certificates are created and encrypted. From just
 - AES-ECB encrypt the second counter. Set enc3 to this value.
 - The current encrypted block will then be enc2 xor enc3
 
-This encryption scheme is very similar to AES-PCBC (link). Decryption is very similar, just done in reverse. When we encrypt a message, we get the IV+encrypted blocks back.
+This encryption scheme is very similar to [AES-PCBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Propagating_cipher_block_chaining_(PCBC)). Decryption is very similar, just done in reverse. When we encrypt a message, we get the IV+encrypted blocks back.
 
 Since we get infinite tries to decrypt a certificate, I first thought to just mess with the given (valid) certificate and see what happens. To my surprise, I got a bunch of "Something went wrong" messages, which indicate that an Exception was triggered in the code. This is weird, because normally you wouldn't code something that errors that easily. As we will see later, this error message turns out to be a very useful side-channel to solving this challenge. 
 
@@ -19,7 +19,7 @@ Even more weirdly, I noticed that modifying characters at the start of the certi
 
 This is interesting, because it hints that each block is XORed with these first 16 bytes. Upon looking at the source code, I also noticed that these first 16 bytes are the IV (or nonce, I will use these terms interchangeably in this writeup), compared to everything else in the certificate which was actual AES output. With more testing, I noticed that the padding error would occur on editing any byte in the AES output, but it would not happen on editing a byte in the IV.
 
-At the same time, I noticed that the end of the decrypted certificate had a lot of `\r`  (0x13) bytes. I knew this was some kind of padding scheme, and with the previous error relating to incorrect padding, maybe there is something going on here. So, I edited the last byte in the IV, asked the oracle to decrypt the cipher, and saw that the decryption had the last padding byte modified, but also received an error about incorrect padding. This was important, because it meant that different modifications to the IV resulted in different messages: either "This certificate is valid" or "Something went wrong".
+At the same time, I noticed that the end of the decrypted certificate had a lot of `\r` (0x13) bytes. I knew this was some kind of padding scheme, and with the previous error relating to incorrect padding, maybe there is something going on here. So, I edited the last byte in the IV, asked the oracle to decrypt the cipher, and saw that the decryption had the last padding byte modified, but also received an error about incorrect padding. This was important, because it meant that different modifications to the IV resulted in different messages: either "This certificate is valid" or "Something went wrong".
 
 I looked into the padding scheme a bit more. The scheme was [PKCS](https://www.ibm.com/docs/en/zos/2.4.0?topic=rules-pkcs-padding-method), which pads the message with bytes until it reaches a block length. If it adds n bytes to the message, each byte it adds has a hex value of n. Therefore, if 13 bytes are needed to pad the message to a block length, each byte added is 0x13 (`\r`). 
 
@@ -64,11 +64,11 @@ Overall, our strategy will take the following steps
 		- Append the encrypted message to the nonce. Remove whole blocks from the end of it based on `blocks_removed`. This allows us to guess multi-byte flags, as we can reset our padding oracle on a different block of the ciphertext.
 		- Send the certificate to the oracle. If it is invalid, instead of the oracle reporting that something went wrong, we have found the correct `test_byte`! Prepend this to the `recovered_flag`.
 
-The solve script can be found here.
+The solve script can be found [here](./modified_solve.py).
 
 ### Infrastructure
 
-b01lers really liked long flags, so I had to let this brute force run on remote for a long time. Naturally, this meant their infrastructure gave out in the middle of solving the challenge and I only had part of the flag: `_security_to_padding_oracle..._c850d60d210169}`. This was kind of bad, because I was out eating lunch and the CTF was going to end in a few hours.  Also, using the saved progress is awkward because of the 8 random bytes appended to the end of the plaintext, meaning reusing this plaintext isn't easy. Thankfully Ronak @ronak came to the rescue! The solution was to let the script run to guess the 8 random bytes at the end, and as soon as it saw the `}` byte, we would automatically set `test_byte` to its known correct value until we run out of known bytes. This modified script can be found here.
+b01lers really liked long flags, so I had to let this brute force run on remote for a long time. Naturally, this meant their infrastructure gave out in the middle of solving the challenge and I only had part of the flag: `_security_to_padding_oracle..._c850d60d210169}`. This was kind of bad, because I was out eating lunch and the CTF was going to end in a few hours.  Also, using the saved progress is awkward because of the 8 random bytes appended to the end of the plaintext, meaning reusing this plaintext isn't easy. Thankfully [@r2dev2](https://github.com/r2dev2/) came to the rescue! The solution was to let the script run to guess the 8 random bytes at the end, and as soon as it saw the `}` byte, we would automatically set `test_byte` to its known correct value until we run out of known bytes. This modified script can be found [here](./modified_solve.py).
 
 ## Flag
 `bctf{adding_ctr_mode_doesn't_provide_any_security_to_padding_oracle..._c850d60d210169}`
