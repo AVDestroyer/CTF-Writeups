@@ -64,9 +64,9 @@ Overall, our strategy will take the following steps
 		- Append the encrypted message to the nonce. Remove whole blocks from the end of it based on `blocks_removed`. This allows us to guess multi-byte flags, as we can reset our padding oracle on a different block of the ciphertext.
 		- Send the certificate to the oracle. If it is invalid, instead of the oracle reporting that something went wrong, we have found the correct `test_byte`! Prepend this to the `recovered_flag`.
 
-The solve script can be found [here](./modified_solve.py).
+The solve script can be found [here](./solve.py).
 
-### Infrastructure
+### Uh oh it timed out
 
 b01lers really liked long flags, so I had to let this brute force run on remote for a long time. Naturally, this meant their infrastructure gave out in the middle of solving the challenge and I only had part of the flag: `_security_to_padding_oracle..._c850d60d210169}`. This was kind of bad, because I was out eating lunch and the CTF was going to end in a few hours.  Also, using the saved progress is awkward because of the 8 random bytes appended to the end of the plaintext, meaning reusing this plaintext isn't easy. Thankfully [@r2dev2](https://github.com/r2dev2/) came to the rescue! The solution was to let the script run to guess the 8 random bytes at the end, and as soon as it saw the `}` byte, we would automatically set `test_byte` to its known correct value until we run out of known bytes. This modified script can be found [here](./modified_solve.py).
 
