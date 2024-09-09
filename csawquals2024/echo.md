@@ -93,7 +93,7 @@ wv.write('recovered.wav',rate,new_song)
 ### echo is gone
 Ok, now what? We removed the echo in this new [file](recovered.wav), is that it? Where's the flag? Also, it's not like we really removed the echo that well, you can still kind of hear it. If anything, we made the song more quiet. At this point, I didn't think I was on the right track and I was getting a little confused. 
 
-At around 2am, I'm a bit desparate and I run `strings` on the original file, and I see this at the bottom: `cepstral domain single echo`
+At around 2am, I'm a bit desperate and I run `strings` on the original file, and I see this at the bottom: `cepstral domain single echo`
 
 Oh, that seems like a massive hint!
 
