@@ -15,9 +15,9 @@ I first opened the file in Sonic Visualizer and checked if I could find an obvio
 ![256.wav in Sonic Visualizer](sonic.png)
 
 ## finding the echo
-In theory, I should be able to calculate the autocorrelation/autocovariance between a signal and a delayed version of itself to find the delay of the echo ([MathWorks, 2024](https://www.mathworks.com/help/signal/ug/echo-cancelation.html), [Augusto, 2018](https://www.quora.com/How-do-I-detect-echoes-in-an-audio-signal)). This process basically superimposes two signals on top of each other and determines how "similar" they are. I found some algorithms for autocorrelation and implemented them, looking for a peak in the autocorrelation.
+In theory, I should be able to calculate the autocorrelation/autocovariance between a signal and a delayed version of itself to find the delay of the echo ([MathWorks, 2024](https://www.mathworks.com/help/signal/ug/echo-cancelation.html), [Augusto, 2018](https://www.quora.com/How-do-I-detect-echoes-in-an-audio-signal)). This process basically superimposes two signals on top of each other and determines how "similar" they are. I found some algorithms for autocorrelation and implemented them, looking for a peak in the autocorrelation ([matt, 2018](https://stackoverflow.com/questions/20110590/how-to-calculate-auto-covariance-in-python)).
 
-Here's some the code I wrote to do this ([matt, 2018](https://stackoverflow.com/questions/20110590/how-to-calculate-auto-covariance-in-python)). I was only concerned with the echo for the first note (0.2s) of the song, as I noticed that calculating autocorrelation takes a really long time.
+Here's the code I wrote to do this. I was only concerned with the echo for the first note (0.2s) of the song, as I noticed that calculating autocorrelation takes a really long time.
 
 ```py
 import scipy.io.wavfile as wv
