@@ -111,7 +111,7 @@ Just one problem, I've been here before. How do you actually solve the challenge
 
 The way to encode a message using echoes is as follows: choose two somewhat different but small echo delays (the difference should be imperceptible to the naked ear). Use them to encode binary information during each "time window" of the audio file. If one delay is chosen during a window, a '0' is encoded, and if the other is chosen, a '1' is encoded.
 
-According to the paper, the actual peak corresponding to the echo delay in the cepstrum is very small, and the cepstrum may contain other peaks at multiples of the echo delay. The latter effect is might not be intentional (I think), but it does allow us to calculate the autocorrelation between the cepstrum and a delayed version of itself. This should have a more prominent peak at the echo delay (as well as a very large peak at 0).
+According to the paper, the actual peak corresponding to the echo delay in the cepstrum is very small, and the cepstrum may contain other peaks at multiples of the echo delay. The latter effect might not be intentional (I think), but it does allow us to calculate the autocorrelation between the cepstrum and a delayed version of itself. This should have a more prominent peak at the echo delay (as well as a very large peak at 0).
 
 Also, we needed better a better autocorrelation algorithm because the one that I found on Stack Overflow sucked and was too slow. Autocorrelation is just a special instance of cross-correlation, so you can use FFT to speed it up. [This library](https://www.statsmodels.org/stable/generated/statsmodels.tsa.stattools.acf.html) offers a good function for this.
 
