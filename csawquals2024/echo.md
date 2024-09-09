@@ -49,6 +49,13 @@ def lagged_auto_cov(Xi,t):
     auto_cov = 1./(N-t) * np.sum( start_padded_series*end_padded_series )
     return auto_cov
 
+total_samples = int(rate * 0.2)
+x = np.arange(total_samples)
+y = np.zeros(total_samples)
+for i in tqdm(range(total_samples)):
+    autocov = lagged_auto_cov(signal,i)
+    y[i] = autocov
+
 normalized = y / y[0]
 plt.plot(x,normalized)
 ```
@@ -72,7 +79,7 @@ Note that we want to go from $f'$ to $f$ so we must invert $H$:
 
 $H^{-1}(z) = \frac{1}{1 + \alpha z^{-\Delta}}$
 
-To apply a filter with this transfer function using [lfilter](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html), we set the numerator and denominators as such ([MathWorks, 2024](https://www.mathworks.com/help/signal/ug/echo-cancelation.html)). Note that I didn't actually know the value of $\alpha$, but I figured that a guess of 0.5 was good enough.
+To apply a filter with this transfer function using [lfilter](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html), we set the numerator and denominator as such ([MathWorks, 2024](https://www.mathworks.com/help/signal/ug/echo-cancelation.html)). Note that I didn't actually know the value of $\alpha$, but I figured that a guess of 0.5 was good enough.
 
 ```py
 from scipy.signal import lfilter
