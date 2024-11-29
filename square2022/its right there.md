@@ -1,7 +1,7 @@
 # its right there
 
 We are given a .apk file, which is for Android applications. To analyze this file, I downloaded Android Studio and used the `profile or debug apk` option. With the Android emulator, the phone screen gave this output:
-![Initial apk](https://media.discordapp.net/attachments/1043332675827675187/1043425418696462336/image.png) <br>
+![Initial apk](image.png) <br>
 Interesting. The flag is probably fully displayed in the textbox, but the font size is too big. Is there a way to retrieve the flag from the apk or change the window size?
 Running `strings freeflag.apk | grep flag` on the apk, we get:
 ```
@@ -9,8 +9,8 @@ freeflag
 flag
 Theme.Freeflag
 ```
-Not super helpful. <br><br>
-Going back to Android studio, we can see a bunch of `.smali` files. One of them in particular, `com.squarectf/freeflag/MainActivity.smali` has the disassembled Main method for the app (everything else appears to be a helper method not created by squarectf). <br><br>
+Not super helpful. <br>
+Going back to Android studio, we can see a bunch of `.smali` files. One of them in particular, `com.squarectf/freeflag/MainActivity.smali` has the disassembled Main method for the app (everything else appears to be a helper method not created by squarectf). <br>
 Wait, what is a smali file? A quick Google search tells us that they are decompiled .dex (Dalvik executable) files, which are Android executables. So we are looking at some kind of assembly. A bit more Googling leads us to find this [list of opcodes](http://pallergabor.uw.hu/androidblog/dalvik_opcodes.html). So, we can start analyzing the smali. <br>
 Scrolling through the smali file, we see `"AES/ECB/PKCS5Padding"`, `javax/crypto/Cipher`, `java/util/Random`, etc. This means that the flag is probably encrypted and we likely cannot retrieve the flag directly from the dissassembly. So, we have to find a way to resize the window or the font to see the whole flag. Looking back at the beginning, we find:
 ```smali
@@ -43,8 +43,8 @@ In order to run Android applications, we must sign and align them. Through a ver
   - [Can't run zipalign?](https://stackoverflow.com/questions/31048208/zipalign-command-not-found) My binary was in `~/Android/Sdk/build-tools/33.0.0/zipalign` <br>
 
 Now, we can try to run `freeflag/dist/freeflag-aligned.apk` in Android studio.
-![Wait what?](https://media.discordapp.net/attachments/1043332675827675187/1043471848819658753/image.png) <br>
-Wait what? No certificates? (Insert megamind face). I thought we already signed it? Turns out that we needed to sign it twice, because [I love Android Studio](https://stackoverflow.com/questions/2914105/what-is-install-parse-failed-no-certificates-error). <br>
+![wait what?](image-1.png) <br>
+Wait what? No certificates? (Insert megamind face). I thought we already signed it? Turns out that we needed to sign it twice, because [Android Studio is great](https://stackoverflow.com/questions/2914105/what-is-install-parse-failed-no-certificates-error). <br>
 Thankfully, the application still works on an actual Android phone. Thanks Alex! <br>
 <img src="https://user-images.githubusercontent.com/42781218/202933625-a324184c-400c-4401-b6ed-1d789b86a43e.png" alt="image" width="300" height="400" />
 
