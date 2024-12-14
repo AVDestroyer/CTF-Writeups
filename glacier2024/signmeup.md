@@ -197,11 +197,11 @@ For `keygen`:
 
 For `sign`:
 - A signature is the tuple $(R, S)$, where $R$ is a curve point ($b$ bits) and $S$ is a $b$-bit little endian scalar. The signature is therefore $2b$ bits overall.
-- Let $r$ = $H(H(k) || M)$, where $||$ denotes concatenation. Then $R = rB$.
-- For a message $M$, $S \equiv r + H(R || A || M)s \mod{l}$.
+- Let $r$ = $H(H(k) \mathbin\Vert M)$, where $\mathbin\Vert$ denotes concatenation. Then $R = rB$.
+- For a message $M$, $S \equiv r + H(R \mathbin\Vert A \mathbin\Vert M)s \mod{l}$.
 
 For `verify`:
-- Check if the following holds for a signature $(R,S)$ and message $M$: $SB = R + H(R||A||M)A$.
+- Check if the following holds for a signature $(R,S)$ and message $M$: $SB = R + H(R \mathbin\Vert A \mathbin\Vert M)A$.
 
 ### What is the challenge doing?
 
@@ -211,7 +211,7 @@ Everything else in the challenge is mathematically equivalent to standard Ed2551
 
 ### Missing bits
 
-Since we can ask for as many signatures we want for our own messages, we get a lot of values of $S$. After receiving $S_i$, notice that there are only two unknowns, $r$ and $s$: The values of $R_i$ (given in the signature), $A$ (public key), and $M_i$ (message) are all known. For message $M_i$, let $h_i = H_2(R_i || A || M_i)$. Then, we know that $S - r_i \equiv h_is \mod{l}$. Also note that while $r_i$ depends on $M_i$, $s$ does not. 
+Since we can ask for as many signatures we want for our own messages, we get a lot of values of $S$. After receiving $S_i$, notice that there are only two unknowns, $r$ and $s$: The values of $R_i$ (given in the signature), $A$ (public key), and $M_i$ (message) are all known. For message $M_i$, let $h_i = H_2(R_i \mathbin\Vert A \mathbin\Vert M_i)$. Then, we know that $S - r_i \equiv h_is \mod{l}$. Also note that while $r_i$ depends on $M_i$, $s$ does not. 
 
 Why is this useful? Since $r_i$ is also computed using $H_2$ (SHA-1), it is only 160 bits, while $S_i$ is 252 bits. This gives us about 92 bits of information about the value of $h_is \mod{l}$. More specifically, if $b = 2^{160}$, we can say that $S_i - b \leq h_is \mod{l} \leq S_i$.
 
@@ -219,9 +219,9 @@ If we query a bunch of signatures, we are left with many of inequalities in the 
 
 ### Lattices
 
-If we request $n$ signatures, we have $n+1$ unknowns ($s$ and $k_i$ for $i = 1, \cdots, n$) and $n+1$ equations (one per signature, plus the initial constraint on $s$). This lets us set up a square matrix for our lattice. If we receive signature $(R_i, S_i)$, let $h_i$ be the value $H_2(R_i || A || M_i) \mod{l}$ that we can compute. Define the following:
+If we request $n$ signatures, we have $n+1$ unknowns ($s$ and $k_i$ for $i = 1, \cdots, n$) and $n+1$ equations (one per signature, plus the initial constraint on $s$). This lets us set up a square matrix for our lattice. If we receive signature $(R_i, S_i)$, let $h_i$ be the value $H_2(R_i \mathbin\Vert A \mathbin\Vert M_i) \mod{l}$ that we can compute. Define the following:
 
-$$
+```math
 \mathbf{A} = \begin{bmatrix}
 1 & 0 & 0 &  \cdots & 0 \\ h_1 & l & 0 & \cdots & 0 \\ h_2 & 0 & l & \cdots & 0\\ \vdots & \vdots & \vdots & \ddots & \vdots \\ h_n & 0 & 0 & \cdots & l  
 \end{bmatrix} , \hat{x} = \begin{bmatrix}
@@ -233,13 +233,13 @@ s \\ k_1 \\ k_2 \\ \vdots \\ k_n
 \hat{max} = \begin{bmatrix}
 2^{256} \\ S_1 \\ S_2 \\ \vdots \\ S_n
 \end{bmatrix}
-$$
+```
 
 Then we know that $\hat{min} \leq \mathbf{A}\hat{x} \leq \hat{max}$. We just need to find some $\hat{x}$ that satisfies the equation, and its first element will be the value of $s$ we are looking for. We can represent the column vectors of $\mathbf{A}$ as a basis of some lattice in $\mathbb{R}^{n+1}$, where the inequality now defines a "box" in n+1 dimensions where a lattice point ($\hat{x}$) must lie. 
 
 To make this point easier to find, we can use lattice reduction to find a short, almost orthogonal basis $\beta'$ of the lattice. This is done with an algorithm like LLL. Suppose the basis is stored in the columns of an LLL-reduced matrix $\mathbf{A}'$. We apply the inverse transformation for this basis (left-multiply by $\mathbf{A}'^{-1}$) to the lattice to get a new lattice which is simply $\mathbb{Z}^{n+1}$ (just integer points in n+1 dimensions). We also apply this inverse transformation to the "box" to get a n+1-dimensional *parallelotope* where a lattice point must lie now. All we have to do is find an integer point ($\hat{x}'$) inside this transformed parallelotope. 
 
-Since LLL tries to find a short, almost orthogonal basis, the parallelotope we find should have wide angles and contain lattice points near its midpoint (in theory). So if we compute its midpoint, and search for integer points around that midpoint, we should be able to find an integer point located inside the parallelotope. To check if an integer point $\hat{x}_{test}'$ is inside the parallelotope, we can simply compute $\mathbf{A}'\hat{x}_{test}'$ and check if it satisfies the original inequality: $\hat{min} \leq \mathbf{A}'\hat{x}_{test}' \leq \hat{max}$.
+Since LLL tries to find a short, almost orthogonal basis, the parallelotope we find should have wide angles and contain lattice points near its midpoint (in theory). So if we compute its midpoint, and search for integer points around that midpoint, we should be able to find an integer point located inside the parallelotope. To check if an integer point $\hat{x}_ {test}'$ is inside the parallelotope, we can simply compute $\mathbf{A}'\hat{x}_ {test}'$ and check if it satisfies the original inequality: $\hat{min} \leq \mathbf{A}'\hat{x}_{test}' \leq \hat{max}$.
 
 Let's try to implement this attack to recover $s$. I will skip some of the pwntools reading/parsing inputs to focus on the math for now:
 
@@ -265,7 +265,7 @@ for i in range(N-1):
 
     assert (S < l)
 
-    # generate H(R || A || M)
+    # generate H(R \mathbin\Vert A \mathbin\Vert M)
     h.update(binascii.unhexlify(R.encode()))
     h.update(pk)
     h.update(msg)
@@ -380,7 +380,8 @@ Finally, we need to rewrite the first inequality on $s$ to also be a 160-bit ine
 Note that we haven't mathematically changed our system of inequalities at all; we only have rearranged them, applied some constant scaling, and introduced an extra trivial inequality. However, our new inequality system is much more compatible with lattice reduction since the inequalities are smaller and all of the same order. We now have n+2 inequalities for n+2 variables.
 
 We now have $\hat{min} \leq \mathbf{A} \hat{x} \leq \hat{max}$ for:
-$$
+
+```math
 \mathbf{A} = \begin{bmatrix}
 b/l & 0 & 0 &  \cdots & 0 & 0 \\ -h_1 & l & 0 & \cdots & 0 & S_1 \\ -h_2 & 0 & l & \cdots & 0 & S_2 \\ \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\ -h_n & 0 & 0 & \cdots & l & S_n \\ 0 & 0 & 0 & \cdots & 0 & b
 \end{bmatrix} , \hat{x} = \begin{bmatrix}
@@ -392,7 +393,7 @@ s \\ k_1 \\ k_2 \\ \vdots \\ k_n \\ y
 \hat{max} = \begin{bmatrix}
 b \\ b \\ b \\ \vdots \\ b \\ b
 \end{bmatrix}
-$$
+```
 
 small note: since the value $S_i$ is computed modulo $l$, the value of $s$ can actually be bounded between $0$ and $l$ instead of $0$ and $2^{256}$. I will use this as the constraint in the above system. Also, since $k_i$ are arbitrary integers, it doesn't matter whether you add or subtract them in the inequalities.
 
@@ -423,7 +424,7 @@ for i in range(N-1):
 
     assert (S < l)
 
-    # generate H(R || A || M)
+    # generate H(R \mathbin\Vert A \mathbin\Vert M)
     h.update(binascii.unhexlify(R.encode()))
     h.update(pk)
     h.update(msg)
@@ -512,11 +513,11 @@ Was the challenge set up so that there is only one value of s? Very interesting 
 
 ### Finishing the forge
 
-Wait, what can we actually do with a value of s? The challenger gives us a message to sign: we need to generate some $(R, S)$ pair that passes `validate`. To sign a message, we need to know $r$ to compute $R = rB$, but $r$ is almost unpredictable since it is $H_2\left(H_1(k) || M\right)$. Actually, since $H_2$ is SHA-1, it could be possible via length extension to predict a value of $r$ if we controlled the message $M$. This would mean we try to break the [existential unforgeability](https://en.wikipedia.org/wiki/Digital_signature_forgery#Existential_forgery) of the signature scheme, but I digress. We don't control $M$, so this won't work.
+Wait, what can we actually do with a value of s? The challenger gives us a message to sign: we need to generate some $(R, S)$ pair that passes `validate`. To sign a message, we need to know $r$ to compute $R = rB$, but $r$ is almost unpredictable since it is $H_2\left(H_1(k) \mathbin\Vert M\right)$. Actually, since $H_2$ is SHA-1, it could be possible via length extension to predict a value of $r$ if we controlled the message $M$. This would mean we try to break the [existential unforgeability](https://en.wikipedia.org/wiki/Digital_signature_forgery#Existential_forgery) of the signature scheme, but I digress. We don't control $M$, so this won't work.
 
-Notice that in `validate`, we never actually validate the value of $R$! We never check if $R = H_2\left(H_1(k) || M\right)B$. This is great, because we can set $r$ to whatever we want, and $R = rB$. For the sake of simplicity, $r = 0$ and $R$ is the zero/identity point (for a Twisted Edwards Curve, this is (0,1) ). In compressed format, $R = 1$
+Notice that in `validate`, we never actually validate the value of $R$! We never check if $R = H_2\left(H_1(k) \mathbin\Vert M\right)B$. This is great, because we can set $r$ to whatever we want, and $R = rB$. For the sake of simplicity, $r = 0$ and $R$ is the zero/identity point (for a Twisted Edwards Curve, this is (0,1) ). In compressed format, $R = 1$
 
-Now, all we have to do is use our computed $s$ to calculate $S$: $S \equiv r + H_2\left(R || A || M\right)s \equiv H_2\left(R || A || M\right)s \mod{l}$. Send $(R,S)$ and that is our forged signature!
+Now, all we have to do is use our computed $s$ to calculate $S$: $S \equiv r + H_2\left(R \mathbin\Vert A \mathbin\Vert M\right)s \equiv H_2\left(R \mathbin\Vert A \mathbin\Vert M\right)s \mod{l}$. Send $(R,S)$ and that is our forged signature!
 
 I couldn't actually find the flag since I solved this after the CTF finished, but this works with a local flag in a docker container!
 
@@ -619,7 +620,7 @@ def main():
 
         assert (S < l)
 
-        # generate H(R || A || M)
+        # generate H(R \mathbin\Vert A \mathbin\Vert M)
         h.update(binascii.unhexlify(R.encode()))
         h.update(pk)
         h.update(msg)
@@ -711,7 +712,7 @@ def main():
 
     h = hashlib.sha1()
 
-    # compute H(R || A || M)
+    # compute H(R \mathbin\Vert A \mathbin\Vert M)
     h.update(R)
     h.update(pk)
     h.update(challenge_msg.encode())
@@ -798,7 +799,7 @@ def main():
 
         assert (S < l)
 
-        # generate H(R || A || M)
+        # generate H(R \mathbin\Vert A \mathbin\Vert M)
         h.update(binascii.unhexlify(R.encode()))
         h.update(pk)
         h.update(msg)
@@ -888,7 +889,7 @@ def main():
 
     h = hashlib.sha1()
 
-    # compute H(R || A || M)
+    # compute H(R \mathbin\Vert A \mathbin\Vert M)
     h.update(R)
     h.update(pk)
     h.update(challenge_msg.encode())
