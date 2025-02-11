@@ -26,7 +26,7 @@ def shuffle_msg(msg: bytes, L: LCG) -> str:
     return binascii.hexlify(output).decode()
 ```
 
-Refer to my previous [writeup](https://hackmd.io/@Arnav-Vora/rJ60YkPQkx) on any%-ssg last year for the basics of LCG seedcracking using lattices.
+Refer to my previous [writeup](../lactf2024/any-percent-ssg/solve.md) on any%-ssg last year for the basics of LCG seedcracking using lattices.
 
 We are allowed to send up to 256 bytes to be shuffled, and we also received a shuffled secret. Our goal is to unshuffle the secret which gives us the flag. We are also given the LCG parameters, so we just need to find the LCG seed used to create the shuffle.
 
