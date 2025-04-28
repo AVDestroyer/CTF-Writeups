@@ -4,7 +4,7 @@
 
 Crafting an SQL injection query behind AES decryption
 
-Challenge author writeup by [Arnav Vora](https://github.com/AVDestroyer)
+Writeup by [Arnav Vora](https://github.com/AVDestroyer)
 
 > Your login information is end-to-end encrypted with AES, so it's definitely secure.
 
